@@ -32,6 +32,10 @@ Goals of this exercise:
 
 <br>
 
+All data and code is available at the link:  
+[https://portal.idiv.de/nextcloud/index.php/s/2g7TXPs7nwHKtRj](https://portal.idiv.de/nextcloud/index.php/s/2g7TXPs7nwHKtRj)
+
+<br>
 
 ## Install and load packages
 Make sure you have all the packages installed, first. 
@@ -63,11 +67,10 @@ A description of the predictors, with the related sources, is in Table 1 from [S
 
 Import data on primary forests
 ```{r, message=F, warning=F, cache=T}
-pgdb <- "../_data/EPFDv2.0_DatabaseOA/EPFD_v2.0.mdb"
-fc_list0 <- ogrListLayers(pgdb)
-topen <- which(fc_list0=="EU_PrimaryForests_Polygons_OA_v20" )
-
-primary.all <- readOGR(pgdb, fc_list0[topen]) 
+primary.all <- readOGR("../_data/EPFD_primaryForest_OA.shp") 
+#visualize data
+glimpse(primary.all@data)
+#filter out all unnecessary fields
 primary.sf <- primary.all %>% 
   st_as_sf() %>% 
   mutate(is.primary=1) %>% 
@@ -278,3 +281,14 @@ Notice how AUC and correlation changed, compared to the model test.statistics of
 
 Congratulations!  
 You have just fitted your (first?) BRT model. Actually we have just scratched the surface here, but this is a powerful technique for creating spatial distribution models based on a machine-learning algorithm. 
+
+
+## SessionInfo
+```{r}
+sessionInfo()
+```
+
+```{r, echo=F}
+knitr::purl("01_PrimaryModelling.Rmd")
+```
+
