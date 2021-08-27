@@ -1,9 +1,13 @@
 ---
-title: "PrimaryForest_Modelling"
+title: "Modelling the distribution of potential primary forests in the Carpathians"
 author: "Francesco Maria Sabatini"
-date: "25 8 2021"
+date: "31 9 2021"
 output: html_document
 ---
+
+<center>
+![](D:/Nextcloud/Teaching/FZS_EuropeanNaturalForestSchool/Practice/FZSschool_code/logo-forest-school-1.png)
+</center>
 
 Primary forests have high conservation value but are rare in Europe due to historic land use. Yet many primary forest patches remain unmapped, especially in the Carpathians, which are the stronghold of primary forests in Europe. 
 Based on data contained in the [European Primary Forest Database v2.0](https://figshare.com/articles/dataset/European_Primary_Forest_Database/13194095) [(Sabatini et al. 2021 - DDI)](https://www.nature.com/articles/s41597-021-00988-7), we will train a model to predict where still-to-be-mapped primary forests are likely to be located in the Carpathians. 
@@ -45,7 +49,7 @@ library(automap)
 
 ## Prepare geographical data
 Import and visualize spatial predictors. Convert to WGS84
-```{r, message=F, warning=F, fig.align="center", fig.height=8, fig.width=10, cache=T}
+```{r, message=F, warning=F, fig.align="center", fig.height=8, fig.width=10}
 files <- list.files(path="../_data", pattern="*.tif$", full.names = T)
 mystack <- raster::stack(files)
 mystack <- projectRaster(mystack, crs=crs("+proj=longlat +datum=WGS84 +no_defs"), method = "ngb")
@@ -83,10 +87,6 @@ Select only primary forests inside the Carpathians and visualize
 ```{r, message=F, warning=F, fig.align="center", fig.height=5, fig.width=6}
 contained <- st_contains(carpathians.sf, primary.sf)
 primary.carp <- primary.sf[unique(unlist(contained)),]
-
-
-carpathians.sf <- carpathians.sf %>% 
-  st_set_crs(crs(primary.carp))
 
 #visualize
 ggplot()  + 
@@ -192,16 +192,8 @@ myp <- gbm::predict.gbm(brt.naive,
                              as.data.frame(), 
                            type="response")
 
-myp.df <- raster::coordinates(mystack) %>% 
-  as_tibble() %>% 
-  bind_cols(brt.pred=myp) #%>% 
-  #bind_cols(getValues(mystack[[c("X0.0b.mask.figs.UKR", "X3.2.Growing.Stock.UKR")]]) %>% 
-  #            as_tibble()) %>% 
-  #mutate(brt.pred=ifelse( (!is.na(X0.0b.mask.figs.UKR) & !is.na(X3.2.Growing.Stock.UKR)), brt.pred, NA))
-
-
 myp.raster.naive <- raster(mystack[[1]])
-myp.raster.naive <- setValues(myp.raster.naive, myp.df$brt.pred)
+myp.raster.naive <- setValues(myp.raster.naive, myp)
 myp.raster.naive <- mask(myp.raster.naive, mask = mystack$X0.0b.mask)
 
 plot(myp.raster.naive)
@@ -228,6 +220,7 @@ A more honest evaluation of our model could be obtained dividing train and test 
 
 To define the size of a spatial block, we first need to check for the spatial autocorrelation of predictors. We can do this using the package `blockCV`.
 ```{r, cache=T, warning=F}
+# make mysample.naive a spatial 'sf' object
 mysample.naive.sf <- mysample.naive
 coordinates(mysample.naive.sf) <- ~x+y
 crs(mysample.naive.sf) <- crs(mystack)
@@ -244,7 +237,7 @@ autocorrelation.i <- sac$range
 print(paste("Autocorrelation is", round(autocorrelation.i/1000), "km"))
 ```
 
-We can now divide our study regions in blocks. The function `spatialBlock` will help us assign each block to one of our k = 5 folds, in a way that the proportion of presence and background points remains balances.
+We can now divide our study regions in blocks. The function `spatialBlock` will help us assign each block to one of our k = 5 folds, in a way that the proportion of presence and background points remains balanced.
 ```{r, cache=T, warning=F}
 #spatial blocking with randomly assigned grid cells, 
 sb2 <- spatialBlock(speciesData = mysample.naive.sf, 
@@ -257,13 +250,14 @@ sb2 <- spatialBlock(speciesData = mysample.naive.sf,
                     seed=100,
                     progress = T)
 ```
+<br>
 After splitting our data in train and test dataset, we can refit the model and obtain a more accurate validation. 
 
 ```{r}
 train.data.aware <- mysample.naive %>% 
   filter(sb2$foldID != 5) 
 test.data.aware <- mysample.naive %>% 
-  filter(sb2$foldID != 5) 
+  filter(sb2$foldID == 5) 
 
 
 #### run BRTs and explore output
@@ -282,11 +276,5 @@ brt.aware <- gbm.step(data=train.data.aware,
 Notice how AUC and correlation changed, compared to the model test.statistics of the our naive model.
 <br>
 
-Congralations!  
-You have scratched the surface of a powerful technique for creating spatial distribution models using a machine-learning algorithm. 
-
-
-
-
-
-
+Congratulations!  
+You have just fitted your (first?) BRT model. Actually we have just scratched the surface here, but this is a powerful technique for creating spatial distribution models based on a machine-learning algorithm. 
