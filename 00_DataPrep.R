@@ -41,6 +41,10 @@ fc_list0 <- ogrListLayers(pgdb)
 topen <- which(fc_list0=="EU_PrimaryForests_Polygons_OA_v20" )
 
 primary.all <- readOGR(pgdb, fc_list0[topen]) 
+
+writeOGR(obj = primary.all, dsn = "../_data", layer = "EPFD_primaryForest_OA", driver="ESRI Shapefile" )
+primary.all2 <- readOGR("../_data/EPFD_primaryForest_OA.shp")
+
 primary.sf <- primary.all %>% 
   st_as_sf() %>% 
   st_transform(crs=crs(mystack)) %>% 
