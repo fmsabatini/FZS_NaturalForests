@@ -6,7 +6,7 @@ output: html_document
 ---
 
 <center>
-![](https://upload.wikimedia.org/wikipedia/en/5/57/Fzslogo.jpg){height=400px}
+![](D:/Nextcloud/Teaching/FZS_EuropeanNaturalForestSchool/Practice/FZSschool_code/logo-forest-school-1.png)
 </center>
 
 Primary forests have high conservation value but are rare in Europe due to historic land use. Yet many primary forest patches remain unmapped, especially in the Carpathians, which are the stronghold of primary forests in Europe. 
