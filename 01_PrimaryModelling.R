@@ -1,4 +1,4 @@
-## ---- message=F, warning=F---------------------------------------------------------------------
+## ---- message=F, warning=F---------------------------------------------------------------------------------------------
 # install.packages(c("tidyverse", "raster", "st", "rgdal", "gbm", "dismo", "blockCV", "automap", "cowplot", "rgeos")) if necessary
 library(tidyverse)
 library(raster)
@@ -12,14 +12,14 @@ library(cowplot)
 library(rgeos)
 
 
-## ---- message=F, warning=F, fig.align="center", fig.height=8, fig.width=10, cache=T------------
+## ---- message=F, warning=F, fig.align="center", fig.height=8, fig.width=10, cache=T------------------------------------
 files <- list.files(path="../_data", pattern="*.tif$", full.names = T)
 mystack <- raster::stack(files)
 mystack <- projectRaster(mystack, crs=crs("+proj=longlat +datum=WGS84 +no_defs"), method = "ngb")
 plot(mystack)
 
 
-## ---- message=F, warning=F, cache=T------------------------------------------------------------
+## ---- message=F, warning=F, cache=T------------------------------------------------------------------------------------
 primary.all <- readOGR("../_data/EPFD_primaryForest_OA.shp") 
 #visualize data
 glimpse(primary.all@data)
@@ -34,7 +34,7 @@ primary.sf <- primary.sf %>%
   slice(which(st_is_valid(primary.sf)))
 
 
-## ---- warning=F--------------------------------------------------------------------------------
+## ---- warning=F--------------------------------------------------------------------------------------------------------
 carpathians.sf <- read_sf("../_data/EuropeanMountainAreas/m_massifs_v1.shp") %>% 
   filter(name_mm == "Carpathians") %>% 
   st_transform(crs(primary.sf)) %>% 
@@ -42,7 +42,7 @@ carpathians.sf <- read_sf("../_data/EuropeanMountainAreas/m_massifs_v1.shp") %>%
 
 
 
-## ---- message=F, warning=F, fig.align="center", fig.height=5, fig.width=6----------------------
+## ---- message=F, warning=F, fig.align="center", fig.height=5, fig.width=6----------------------------------------------
 contained <- st_contains(carpathians.sf, primary.sf)
 primary.carp <- primary.sf[unique(unlist(contained)),]
 
@@ -53,13 +53,13 @@ ggplot()  +
   theme_bw()
 
 
-## ---- message=F, warning=F---------------------------------------------------------------------
+## ---- message=F, warning=F---------------------------------------------------------------------------------------------
 primary.raster <- rasterize(primary.carp, mystack)
 mystack <- stack(primary.raster, mystack)
 names(mystack)[1] <- "Y.Primary.forest"
 
 
-## ----------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------------------------------------------------------------
 mydata0 <- getValues(mystack) %>% 
   as_tibble() 
 mydata.coord <- raster::coordinates(mystack) %>% 
@@ -77,7 +77,7 @@ mydata <- mydata.coord %>%
 glimpse(mydata)
 
 
-## ----------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------------------------------------------------------------
 set.seed(2907)
 #count num of PF pixels
 n.pf <- nrow(mydata %>% filter(Y.Primary.forest==1))
@@ -98,7 +98,7 @@ mysample.naive <- mydata %>%
 
 
 
-## ----fig.align="center", fig.height=8, fig.width=8---------------------------------------------
+## ----fig.align="center", fig.height=8, fig.width=8---------------------------------------------------------------------
 train.data <- mysample.naive %>% 
   filter(kfold != 5)
 test.data <- mysample.naive %>% 
@@ -115,7 +115,7 @@ summary.gbm(brt.naive, plotit = F)
 gbm.plot(brt.naive, n.plots=6, plot.layout=c(3, 2), write.title = FALSE)
 
 
-## ----fig.align="center", fig.height=8, fig.width=8---------------------------------------------
+## ----fig.align="center", fig.height=8, fig.width=8---------------------------------------------------------------------
 # evaluate our model based on the test dataset.
 (e <- dismo::evaluate(p = test.data %>% 
                 filter(Y.Primary.forest==1), 
@@ -126,7 +126,7 @@ gbm.plot(brt.naive, n.plots=6, plot.layout=c(3, 2), write.title = FALSE)
 
 
 
-## ----------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------------------------------------------------------------
 ## predict to the whole landscape
 myp <- gbm::predict.gbm(brt.naive, 
                            getValues(mystack[[-1]]) %>% 
@@ -140,13 +140,13 @@ myp.raster.naive <- mask(myp.raster.naive, mask = mystack$X0.0b.mask)
 plot(myp.raster.naive)
 
 
-## ---- fig.height=4, fig.width=5----------------------------------------------------------------
+## ---- fig.height=4, fig.width=5----------------------------------------------------------------------------------------
 mysample.naive$predicted <- gbm::predict.gbm(brt.naive, mysample.naive, type="response")
 boxplot(predicted ~ Y.Primary.forest, data=mysample.naive)
 
 
 
-## ---- cache=T, warning=F-----------------------------------------------------------------------
+## ---- cache=T, warning=F-----------------------------------------------------------------------------------------------
 # make mysample.naive a spatial 'sf' object
 mysample.naive.sf <- mysample.naive %>% 
   st_as_sf(coords=c("x","y"),
@@ -161,7 +161,7 @@ autocorrelation.i <- sac$range
 print(paste("Autocorrelation is", round(autocorrelation.i/1000), "km"))
 
 
-## ---- cache=T, warning=F-----------------------------------------------------------------------
+## ---- cache=T, warning=F-----------------------------------------------------------------------------------------------
 #spatial blocking with randomly assigned grid cells, 
 sb2 <- spatialBlock(speciesData = mysample.naive.sf, 
                     species = "Y.Primary.forest",
@@ -174,7 +174,7 @@ sb2 <- spatialBlock(speciesData = mysample.naive.sf,
                     progress = T)
 
 
-## ----------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------------------------------------------------------------
 train.data.aware <- mysample.naive %>% 
   filter(sb2$foldID != 5) 
 test.data.aware <- mysample.naive %>% 
@@ -195,10 +195,10 @@ brt.aware <- gbm.step(data=train.data.aware,
               n.trees=brt.aware$gbm.call$best.trees))
 
 
-## ----------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------------------------------------------------------------
 sessionInfo()
 
 
-## ---- echo=F, eval=F---------------------------------------------------------------------------
+## ---- echo=F, eval=F---------------------------------------------------------------------------------------------------
 ## knitr::purl("01_PrimaryModelling.Rmd")
 
