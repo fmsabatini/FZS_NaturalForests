@@ -6,7 +6,7 @@ output: html_document
 ---
 
 <center>
-![](https://scontent-fco2-1.xx.fbcdn.net/v/t31.18172-8/14876616_1120710721344748_4174797806601589293_o.jpg?_nc_cat=107&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=AWczzDZ6--UAX_5O3To&_nc_ht=scontent-fco2-1.xx&oh=00_AT8nC7IX-3XRdt8e8aQSHxAHKD0GTX7PFceeHi8cwlEWoA&oe=63072D21){height=400px}
+![](https://upload.wikimedia.org/wikipedia/en/5/57/Fzslogo.jpg){height=400px}
 </center>
 
 Primary forests have high conservation value but are rare in Europe due to historic land use. Yet many primary forest patches remain unmapped, especially in the Carpathians, which are the stronghold of primary forests in Europe. 
