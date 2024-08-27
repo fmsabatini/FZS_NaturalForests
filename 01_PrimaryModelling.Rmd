@@ -140,7 +140,7 @@ Split in k=5 folds, four to be used as training, one as test dataset.
 library(gbm)
 library(dismo)
 
-set.seed(2907)
+set.seed(2908)
 #count num of PF pixels
 n.pf <- nrow(mydata %>% filter(Y.Primary.forest==1))
 mysize  <- 0.5 ## reduce sample size to increase speed of model 
